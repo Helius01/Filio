@@ -1,4 +1,4 @@
-﻿namespace FileLib;
+﻿namespace Filio.FileLib;
 
 public interface IFileService
 {
