@@ -1,6 +1,7 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
+using Filio.ErrorHandler;
 using Filio.FileLib.Settings.Aws;
 
 namespace Filio.FileLib;
@@ -20,7 +21,7 @@ internal sealed class S3FileService : IFileService
     }
 
     ///<inheritdoc />
-    public async Task DeleteAsync(string bucket, string path)
+    public Task DeleteAsync(string bucket, string path)
     {
         var deleteRequest = new DeleteObjectRequest
         {
@@ -28,21 +29,19 @@ internal sealed class S3FileService : IFileService
             Key = path
         };
 
-        var _ = await _client.DeleteObjectAsync(deleteRequest);
-
-        //TODO:Handle delete response 
-        //Possible not found exception or forbidden.
-        //The function should used to Result approach for the function Result
+        return _client.DeleteObjectAsync(deleteRequest);
     }
 
     ///<inheritdoc />
     public string GetSignedUrl(string bucket, string path, int expirationInMinute = 10)
     {
+        //TODO:Detect protocol from env
         var request = new GetPreSignedUrlRequest
         {
             BucketName = bucket,
             Key = path,
             Expires = DateTime.Now.AddMinutes(expirationInMinute),
+            Protocol = Protocol.HTTP
         };
 
         return _client.GetPreSignedURL(request);
@@ -58,7 +57,7 @@ internal sealed class S3FileService : IFileService
     }
 
     ///<inheritdoc />
-    public async Task UploadAsync(Stream fileStream, string bucket, string path)
+    public async Task<Result<(string SignedUrl, string PublicUrl), HttpError>> UploadAsync(Stream fileStream, string bucket, string path)
     {
         using var fileTransferUtility = new TransferUtility(_client);
 
@@ -72,7 +71,20 @@ internal sealed class S3FileService : IFileService
             AutoResetStreamPosition = true,
         };
 
-        //TODO:Should i raise exception?
-        await fileTransferUtility.UploadAsync(uploadRequest).ConfigureAwait(false);
+
+        try
+        {
+            await fileTransferUtility.UploadAsync(uploadRequest).ConfigureAwait(false);
+        }
+        //If the exception is not type of AmazonS3Exception, Let it throw
+        catch (AmazonS3Exception exception)
+        {
+            return Result<(string, string), HttpError>.Failure(new HttpError(exception.Message, exception.StatusCode));
+        }
+
+        var signedUrl = GetSignedUrl(bucket, path);
+        var publicUrl = GetPublicUrl(bucket, path);
+
+        return Result<(string, string), HttpError>.Success((signedUrl, publicUrl));
     }
 }

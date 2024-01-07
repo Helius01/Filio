@@ -1,4 +1,5 @@
-﻿namespace Filio.FileLib;
+﻿using Filio.ErrorHandler;
+namespace Filio.FileLib;
 
 /// <summary>
 /// Provides many functionalities to manage files and objects
@@ -15,14 +16,14 @@ public interface IFileService
     /// <param name="fileStream">The stream</param>
     /// <param name="bucket">bucket name to upload.Only set the bucket name without any slash or backs slash</param>
     /// <param name="path" example="ss">The file path with specified extensions and folder(folder is optional)</param>
-    /// <returns>Awaitable Task</returns>
+    /// <returns>A Result type (UploadedUrl,HttpError)</returns>
     /// <example>
     /// <code>
     /// await UploadAsync(myFile,"secrets","very-secrets/card.jpg"); => object location = /secrets/very-secrets/card.jpg
     /// await UploadAsync(myFile,"secrets","card.jpg"); => object location = /secrets/card.jpg
     /// </code>
     /// </example>
-    Task UploadAsync(Stream fileStream, string bucket, string path);
+    Task<Result<(string SignedUrl, string PublicUrl), HttpError>> UploadAsync(Stream fileStream, string bucket, string path);
 
     /// <summary>
     /// Deletes an object via bucket name and object path

@@ -32,6 +32,6 @@ public readonly struct Result<R, E> where E : BaseRecoverableError
         Error = error;
         IsSuccess = isSuccess;
     }
-    public static Result<R, E> Success(R value) => new Result<R, E>(value, default, true);
-    public static Result<R, E> Failure(E error) => new Result<R, E>(default, error, false);
+    public static Result<R, E> Success(R value) => new (value, default, true);
+    public static Result<R, E> Failure(E error) => new (default, error, false);
 }

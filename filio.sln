@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Api", "Api\Api.csproj", "{B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileLib", "FileLib\FileLib.csproj", "{1E97CA4C-70CF-4791-B85C-3C400E341480}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErrorHandler", "ErrorHandler\ErrorHandler.csproj", "{72A8A4B2-0118-4606-BA12-4C65DC5D187F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{1E97CA4C-70CF-4791-B85C-3C400E341480}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E97CA4C-70CF-4791-B85C-3C400E341480}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E97CA4C-70CF-4791-B85C-3C400E341480}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72A8A4B2-0118-4606-BA12-4C65DC5D187F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72A8A4B2-0118-4606-BA12-4C65DC5D187F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72A8A4B2-0118-4606-BA12-4C65DC5D187F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72A8A4B2-0118-4606-BA12-4C65DC5D187F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
