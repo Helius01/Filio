@@ -1,4 +1,5 @@
 using System.Text;
+using Filio.Api.Data;
 using Filio.Api.Services.Auth;
 using Filio.Api.Settings.ApiKey;
 using Filio.Api.Settings.Jwt;
@@ -7,6 +8,7 @@ using Filio.FileLib.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -30,6 +32,20 @@ builder.Services.AddSingleton(s => s.GetRequiredService<IOptions<JwtSettings>>()
 var apiKeySection = builder.Configuration.GetSection(nameof(ApiKeySettings));
 builder.Services.Configure<ApiKeySettings>(apiKeySection);
 builder.Services.AddSingleton(s => s.GetRequiredService<IOptions<ApiKeySettings>>().Value);
+
+
+builder.Services.AddDbContext<DataContext>(options =>
+{
+    options.UseNpgsql
+        (builder.Configuration.GetConnectionString("PostgreSQL"),
+         npgsqlOptions =>
+         {
+             npgsqlOptions.EnableRetryOnFailure(maxRetryCount: 3,
+                                                                maxRetryDelay: TimeSpan.FromSeconds(1),
+                                                                errorCodesToAdd: null);
+         });
+});
+
 
 builder.Services.AddSingleton<IAuthService, AuthService>();
 
