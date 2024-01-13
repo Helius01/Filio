@@ -1,7 +1,8 @@
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
-using Filio.ErrorHandler;
+using Filio.Common.ErrorHandler;
+using Filio.Common.ErrorHandler.RecoverableErrors;
 using Filio.FileLib.Settings.Aws;
 
 namespace Filio.FileLib;

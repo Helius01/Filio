@@ -1,4 +1,5 @@
-﻿using Filio.ErrorHandler;
+﻿using Filio.Common.ErrorHandler;
+using Filio.Common.ErrorHandler.RecoverableErrors;
 namespace Filio.FileLib;
 
 /// <summary>
