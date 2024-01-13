@@ -28,4 +28,10 @@ public sealed class AwsSettings
     /// </summary>
     /// <value></value>
     public int MaxErrorRetry { get; init; }
+
+    /// <summary>
+    /// Expiration time for signed urls in minutes
+    /// </summary>
+    /// <value></value>
+    public int ExpirationTimeInMinutes { get; init; }
 }
