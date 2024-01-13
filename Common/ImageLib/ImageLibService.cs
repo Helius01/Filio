@@ -19,7 +19,7 @@ internal class ImageLibService : IImageLibService
     public async Task<string> GenerateBlurhashAsync(Stream imageStream, int componentsX = 6, int componentsY = 6)
     {
         imageStream.Position = 0;
-
+        //TODO:Handle excepyions
         using var image = await Image.LoadAsync<Rgb24>(imageStream);
 
         return _blurhashService.Encode(image, componentsX, componentsY);
