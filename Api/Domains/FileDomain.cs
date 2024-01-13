@@ -72,7 +72,6 @@ public class FileDomain : BaseEntity
     /// <see  cref="FileDomain(string, long, string, string, string, Dictionary{string, string}, string)"/>
     public FileDomain(string bucketName, long sizeInByte, string extension, string originalName, string type, string imageBlurhash, Dictionary<string, string>? metaData = null)
     {
-
         SetBucketName(bucketName);
         SetFileSize(sizeInByte);
         SetExtension(extension);
@@ -221,5 +220,21 @@ public class FileDomain : BaseEntity
     private void SetBlurhash(string imageBlurhash)
     {
         ImageBlurhash = imageBlurhash;
+    }
+
+    public void Delete() => IsDeleted = true;
+
+    public void UpdateBlurhash(string imageBlurhash)
+    {
+
+        if (string.IsNullOrWhiteSpace(imageBlurhash))
+            throw new DomainException("Blurhash cannot be empty or null");
+
+        ImageBlurhash = imageBlurhash;
+    }
+
+    public void UpdateMetadata(Dictionary<string, string> metadata)
+    {
+        MetaData=metadata;
     }
 }
