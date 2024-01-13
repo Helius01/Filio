@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blurhash.ImageSharp" Version="3.0.0" />
+    <PackageReference Include="Mime-Detective" Version="23.10.1" />
+    <PackageReference Include="Mime-Detective.Definitions.Exhaustive" Version="23.10.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
+  </ItemGroup>
+
+</Project>
