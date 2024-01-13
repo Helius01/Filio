@@ -11,6 +11,7 @@ public class FileDomainEntityConfiguration : IEntityTypeConfiguration<FileDomain
 {
     public void Configure(EntityTypeBuilder<FileDomain> builder)
     {
+        builder.Ignore(x => x.FullPath);
         builder.HasIndex(x => x.Id).IsUnique();
         builder.HasIndex(x => x.IsDeleted);
     }
