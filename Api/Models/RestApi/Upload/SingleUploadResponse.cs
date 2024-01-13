@@ -16,4 +16,10 @@ public class SingleUploadResponse
     /// </summary>
     /// <value></value>
     public string PublicUrl { get; set; } = null!;
+
+    /// <summary>
+    /// The file id 
+    /// </summary>
+    /// <value></value>
+    public Guid FileId { get; set; }
 }

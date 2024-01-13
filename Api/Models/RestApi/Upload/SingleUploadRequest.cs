@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Filio.Api.Models.RestApi.Upload;
 
@@ -16,16 +17,15 @@ public sealed class SingleUploadRequest
     public string BucketName { get; set; } = null!;
 
     /// <summary>
-    /// The path of object
-    /// </summary>
-    /// <value></value>
-    [Required]
-    public string Path { get; set; } = null!;
-
-    /// <summary>
     /// The file to upload
     /// </summary>
     /// <value></value>
     [Required]
     public IFormFile File { get; set; } = null!;
+
+    /// <summary>
+    /// The file metadata to store
+    /// </summary>
+    /// <value></value>
+    public Dictionary<string, string>? MetaData { get; set; }
 }
