@@ -4,6 +4,7 @@ using Filio.Api.Services.Auth;
 using Filio.Api.Settings.ApiKey;
 using Filio.Api.Settings.Jwt;
 using Filio.Api.Settings.Swagger;
+using Filio.Common.Extensions;
 using Filio.FileLib.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -46,6 +47,10 @@ builder.Services.AddDbContext<DataContext>(options =>
          });
 });
 
+builder.Services.AddCommon()
+                .AddFileDetector()
+                .AddImageLib()
+                .Register();
 
 builder.Services.AddSingleton<IAuthService, AuthService>();
 
