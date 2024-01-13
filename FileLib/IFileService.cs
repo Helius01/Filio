@@ -1,5 +1,9 @@
 ﻿using Filio.Common.ErrorHandler;
 using Filio.Common.ErrorHandler.RecoverableErrors;
+using Filio.FileLib.Models.Delete;
+using Filio.FileLib.Models.Get;
+using Filio.FileLib.Models.Upload;
+
 namespace Filio.FileLib;
 
 /// <summary>
@@ -12,49 +16,33 @@ public interface IFileService
      *****************/
 
     /// <summary>
-    /// Uploads a new object
+    /// Uploads a new file
     /// </summary>
-    /// <param name="fileStream">The stream</param>
-    /// <param name="bucket">bucket name to upload.Only set the bucket name without any slash or backs slash</param>
-    /// <param name="path" example="ss">The file path with specified extensions and folder(folder is optional)</param>
-    /// <returns>A Result type (UploadedUrl,HttpError)</returns>
-    /// <example>
-    /// <code>
-    /// await UploadAsync(myFile,"secrets","very-secrets/card.jpg"); => object location = /secrets/very-secrets/card.jpg
-    /// await UploadAsync(myFile,"secrets","card.jpg"); => object location = /secrets/card.jpg
-    /// </code>
-    /// </example>
-    Task<Result<(string SignedUrl, string PublicUrl), HttpError>> UploadAsync(Stream fileStream, string bucket, string path);
+    /// <param name="input"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task<Either<HttpError, SingleUploadOutput>> UploadAsync(SingleUploadInput input, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Deletes an object via bucket name and object path
+    /// Deletes a file
     /// </summary>
-    /// <param name="bucket">bucket name</param>
-    /// <param name="path">object path</param>
-    /// <returns>Awaitable task</returns>
-    Task DeleteAsync(string bucket, string path);
-
-    /// <summary>
-    /// Returns the object url via given bucket name and object path
-    /// </summary>
-    /// <remarks>
-    /// The function used to public buckets not private read access buckets.<br />
-    /// The function doesn't effect access key or signature on the generated url
-    /// </remarks>
-    /// <seealso cref="IFileService.GetSignedUrl(string, string)"/>
-    /// <param name="bucket">bucket name</param>
-    /// <param name="path">object path</param>
-    /// <returns>https://object-storgae-service-url/bucket/object-path</returns>
-    string GetPublicUrl(string bucket, string path);
+    /// <param name="input"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    Task DeleteAsync(SingleDeleteInput input, CancellationToken cancellationToken = default);
 
 
     /// <summary>
-    /// Generates and returns a presigned url for private buckets.
+    /// Returns the public url
     /// </summary>
-    /// <seealso cref="GetPublicUrl(string, string)"/>
-    /// <param name="bucket">Bucket name</param>
-    /// <param name="path">Objet path</param>
-    /// <param name="expirationInMinute">Expiration time in minute. The url expires after the given minutes</param>
-    /// <returns>A presigned url which does contains access key and signature</returns>
-    string GetSignedUrl(string bucket, string path, int expirationInMinute = 10);
+    /// <param name="input"></param>
+    /// <returns></returns>
+    string GetPublicUrl(SingleGetInput input);
+
+    /// <summary>
+    /// Signs and returns the url
+    /// </summary>
+    /// <param name="input"></param>
+    /// <returns></returns>
+    string GetSignedUrl(SingleGetInput input);
 }

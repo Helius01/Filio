@@ -3,6 +3,9 @@ using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Filio.Common.ErrorHandler;
 using Filio.Common.ErrorHandler.RecoverableErrors;
+using Filio.FileLib.Models.Delete;
+using Filio.FileLib.Models.Get;
+using Filio.FileLib.Models.Upload;
 using Filio.FileLib.Settings.Aws;
 
 namespace Filio.FileLib;
@@ -22,26 +25,26 @@ internal sealed class S3FileService : IFileService
     }
 
     ///<inheritdoc />
-    public Task DeleteAsync(string bucket, string path)
+    public Task DeleteAsync(SingleDeleteInput input, CancellationToken cancellationToken = default)
     {
         var deleteRequest = new DeleteObjectRequest
         {
-            BucketName = bucket,
-            Key = path
+            BucketName = input.Bucket,
+            Key = input.Path
         };
 
-        return _client.DeleteObjectAsync(deleteRequest);
+        return _client.DeleteObjectAsync(deleteRequest, cancellationToken);
     }
 
     ///<inheritdoc />
-    public string GetSignedUrl(string bucket, string path, int expirationInMinute = 10)
+    public string GetSignedUrl(SingleGetInput input)
     {
         //TODO:Detect protocol from env
         var request = new GetPreSignedUrlRequest
         {
-            BucketName = bucket,
-            Key = path,
-            Expires = DateTime.Now.AddMinutes(expirationInMinute),
+            BucketName = input.Bucket,
+            Key = input.Path,
+            Expires = DateTime.Now.AddMinutes(_awsSettings.ExpirationTimeInMinutes),
             Protocol = Protocol.HTTP
         };
 
@@ -49,43 +52,53 @@ internal sealed class S3FileService : IFileService
     }
 
     ///<inheritdoc />
-    public string GetPublicUrl(string bucket, string path)
+    public string GetPublicUrl(SingleGetInput input)
     {
         var url = _awsSettings.ServiceUrl;
 
         //TODO:Should validates bucket ACL ???
-        return $"{url.Trim('/')}/{bucket}/{path.Trim('/')}";
+        return $"{url.Trim('/')}/{input.Bucket}/{input.Path.Trim('/')}";
     }
 
     ///<inheritdoc />
-    public async Task<Result<(string SignedUrl, string PublicUrl), HttpError>> UploadAsync(Stream fileStream, string bucket, string path)
+    public async Task<Either<HttpError, SingleUploadOutput>> UploadAsync(SingleUploadInput input, CancellationToken cancellationToken = default)
     {
         using var fileTransferUtility = new TransferUtility(_client);
 
-        //TODO:After the implementation of COMPRESS and BLURHASH feature. i can't close the stream.
+        //Creating upload request
         var uploadRequest = new TransferUtilityUploadRequest
         {
-            BucketName = bucket,
-            Key = path,
-            InputStream = fileStream,
+            BucketName = input.Bucket,
+            Key = input.Path,
+            InputStream = input.Stream,
             AutoCloseStream = true,
             AutoResetStreamPosition = true,
         };
 
+        //Applying metadata to request
+        if (input.Metadata != null && input.Metadata.Count > 0)
+        {
+            foreach (var item in input.Metadata)
+            {
+                uploadRequest.Metadata.Add(item.Key, item.Value);
+            }
+        }
 
         try
         {
-            await fileTransferUtility.UploadAsync(uploadRequest).ConfigureAwait(false);
+            await fileTransferUtility.UploadAsync(uploadRequest, cancellationToken).ConfigureAwait(false);
         }
+
         //If the exception is not type of AmazonS3Exception, Let it throw
         catch (AmazonS3Exception exception)
         {
-            return Result<(string, string), HttpError>.Failure(new HttpError(exception.Message, exception.StatusCode));
+            //TODO:Log and capture 
+            return Either<HttpError, SingleUploadOutput>.Left(new HttpError(exception.Message, exception.StatusCode));
         }
 
-        var signedUrl = GetSignedUrl(bucket, path);
-        var publicUrl = GetPublicUrl(bucket, path);
+        var signedUrl = GetSignedUrl(new SingleGetInput(bucket: input.Bucket, path: input.Path));
+        var publicUrl = GetPublicUrl(new SingleGetInput(bucket: input.Bucket, path: input.Path));
 
-        return Result<(string, string), HttpError>.Success((signedUrl, publicUrl));
+        return Either<HttpError, SingleUploadOutput>.Right(new SingleUploadOutput(publicUrl: publicUrl, signedUrl: signedUrl));
     }
 }
