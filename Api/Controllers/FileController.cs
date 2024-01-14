@@ -20,6 +20,7 @@ public partial class FileController : ControllerBase
     private readonly DataContext _context;
     private readonly IFileDetectorService _fileDetectorService;
     private readonly IImageLibService _imageLibService;
+    private readonly ILogger<FileController> _logger;
 
     /// <summary>
     /// Default constructor
@@ -28,12 +29,14 @@ public partial class FileController : ControllerBase
     /// <param name="imageLibService"></param>
     /// <param name="context"></param>
     /// <param name="fileDetectorService"></param>
-    public FileController(IFileService fileService, IImageLibService imageLibService, DataContext context, IFileDetectorService fileDetectorService)
+    /// <param name="logger"></param>
+    public FileController(IFileService fileService, IImageLibService imageLibService, DataContext context, IFileDetectorService fileDetectorService, ILogger<FileController> logger)
     {
         _fileService = fileService;
         _imageLibService = imageLibService;
         _context = context;
         _fileDetectorService = fileDetectorService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -55,6 +58,7 @@ public partial class FileController : ControllerBase
 
         if (file is null)
         {
+            _logger.LogWarning("Someone requested for a non exists file with id ={Id}", id);
             return NotFound("Couldn't find the file");
         }
 
