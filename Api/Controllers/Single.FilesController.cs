@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Filio.Api.Controllers;
 
-public partial class FileController
+public partial class FilesController
 {
     /// <summary>
     /// Uploads a single file 
