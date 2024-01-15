@@ -1,7 +1,6 @@
 using System.Net;
 using Filio.Api.Data;
 using Filio.Api.Domains;
-using Filio.Api.Models.RestApi.Get;
 using Filio.Api.Models.RestApi.Upload;
 using Filio.Common.ErrorHandler;
 using Filio.Common.ErrorHandler.RecoverableErrors;
@@ -37,17 +36,9 @@ public partial class FilesController
 
         if (fileType == FileType.None)
         {
-            //TODO:Log error
+            _logger.LogWarning("Detected an unsupported file type = {Type}", fileType);
             //TODO:Use strong type for error response
             return BadRequest(new { Error = "File type not supported" });
-        }
-
-        var blurhash = string.Empty;
-
-        if (fileType == FileType.Image)
-        {
-            //Generating blurhash
-            blurhash = await _imageLibService.GenerateBlurhashAsync(fileStream);
         }
 
         var newFile = new FileDomain(bucketName: request.BucketName,
@@ -56,8 +47,11 @@ public partial class FilesController
                                     originalName: request.File.FileName,
                                     type: request.File.ContentType);
 
-        if (!string.IsNullOrEmpty(blurhash))
+        if (fileType == FileType.Image)
         {
+            //Generating blurhash
+            //TODO:Ensure the service can generate blurhash as well (TryGenerateBlurhash)
+            var blurhash = await _imageLibService.GenerateBlurhashAsync(fileStream);
             newFile.UpdateBlurhash(blurhash);
         }
 
@@ -67,9 +61,7 @@ public partial class FilesController
             newFile.UpdateMetadata(request.MetaData);
         }
 
-
         _context.FileDomains.Add(newFile);
-
 
         Either<HttpError, SingleUploadOutput> result = new();
 
@@ -81,9 +73,11 @@ public partial class FilesController
                                                                             path: newFile.Path,
                                                                             bucket: newFile.BucketName,
                                                                         metadata: request.MetaData));
+
+            //TODO:Ensure the file has been uploaded
         });
 
-
+        //TODO:Use standard structure for error response
         return result.Match<IActionResult>(
             left => left.StatusCode switch
             {
@@ -116,6 +110,7 @@ public partial class FilesController
 
         if (file is null)
         {
+            _logger.LogCritical("Requested to delete a non exists file with Id = {Id}", id);
             return NotFound(new { Error = "Couldn't find the file" });
         }
 
@@ -127,6 +122,8 @@ public partial class FilesController
             await _context.SaveChangesAsync(cancellationToken);
             await _fileService.DeleteAsync(new SingleDeleteInput(path: file.Path, bucket: file.BucketName), cancellationToken);
         });
+
+        _logger.LogInformation("A file has been deleted successfully with Id = {Id}", id);
 
         return NoContent();
     }
