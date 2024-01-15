@@ -58,7 +58,7 @@ public partial class FilesController : ControllerBase
 
         if (file is null)
         {
-            _logger.LogWarning("Someone requested for a non exists file with id ={Id}", id);
+            _logger.LogWarning("Requested to get a non exists file with id ={Id}", id);
             return NotFound("Couldn't find the file");
         }
 
