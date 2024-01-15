@@ -7,3 +7,6 @@ Implement bulk get,delete
 Provide Grpc communication
 Tus integration would be cool
 Caching would be nice
+Enhance Blurhash service 
+Modular authentication
+Modular image server
