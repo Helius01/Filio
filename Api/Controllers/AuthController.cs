@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Filio.Api.Controllers;
 
+//TODO:The authentication should be optional. Also it must implement via database to store api keys.
 /// <summary>
 /// Auth Controller
 /// </summary>
@@ -16,16 +17,29 @@ public class AuthController : ControllerBase
     private readonly ApiKeySettings _apiKeySettings;
     private readonly IAuthService _authService;
 
+    /// <summary>
+    /// Default constructor
+    /// </summary>
+    /// <param name="apiKeySettings"></param>
+    /// <param name="authService"></param>
+
     public AuthController(ApiKeySettings apiKeySettings, IAuthService authService)
     {
         _apiKeySettings = apiKeySettings;
         _authService = authService;
     }
+
+    /// <summary>
+    /// Check your api key and returns the access_token
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost]
-    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    public IActionResult RefreshToken([FromBody] RefreshTokenRequest request)
     {
         if (!(_apiKeySettings.ApiKey == request.ApiKey && BCrypt.Net.BCrypt.Verify(request.ApiSecret, _apiKeySettings.ApiSecretHash)))
         {
+            //TODO:Log data as much as possible
             //TODO:Aggressive brute force protection
             return Unauthorized();
         }
@@ -35,9 +49,9 @@ public class AuthController : ControllerBase
             new Claim(ClaimTypes.Role,"User")
          };
 
-        var jwtResult = _authService.GenerateAccessToken(claims);
+        var (accessToken, _) = _authService.GenerateAccessToken(claims);
 
 
-        return Ok(jwtResult.AccessToken);
+        return Ok(accessToken);
     }
 }
