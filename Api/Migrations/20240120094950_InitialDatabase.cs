@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -22,9 +21,9 @@ namespace Api.Migrations
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     Path = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<byte>(type: "smallint", nullable: false),
                     BucketName = table.Column<string>(type: "text", nullable: false),
-                    SizeInByte = table.Column<int>(type: "integer", nullable: false),
-                    MetaData = table.Column<Dictionary<string, string>>(type: "hstore", nullable: false),
+                    SizeInByte = table.Column<long>(type: "bigint", nullable: false),
                     ImageBlurhash = table.Column<string>(type: "text", nullable: true),
                     Extension = table.Column<string>(type: "text", nullable: false),
                     OriginalName = table.Column<string>(type: "text", nullable: false),
