@@ -11,15 +11,13 @@ public class SingleGetResponse
     /// <param name="signedUrl"></param>
     /// <param name="publicUrl"></param>
     /// <param name="bucket"></param>
-    /// <param name="metadata"></param>
     /// <param name="imageBlurhash"></param>
     /// <param name="type"></param>
-    public SingleGetResponse(string signedUrl, string publicUrl, string bucket, Dictionary<string, string>? metadata, string? imageBlurhash, string type)
+    public SingleGetResponse(string signedUrl, string publicUrl, string bucket, string? imageBlurhash, string type)
     {
         SignedUrl = signedUrl;
         PublicUrl = publicUrl;
         Bucket = bucket;
-        Metadata = metadata;
         ImageBlurhash = imageBlurhash;
         Type = type;
     }
@@ -41,12 +39,6 @@ public class SingleGetResponse
     /// </summary>
     /// <value></value>
     public string Bucket { get; private set; } = null!;
-
-    /// <summary>
-    /// File metadata
-    /// </summary>
-    /// <value></value>
-    public Dictionary<string, string>? Metadata { get; private set; }
 
     /// <summary>
     /// image blurhash

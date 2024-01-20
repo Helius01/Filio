@@ -75,15 +75,6 @@ internal sealed class S3FileService : IFileService
             AutoResetStreamPosition = true,
         };
 
-        //Applying metadata to request
-        if (input.Metadata != null && input.Metadata.Count > 0)
-        {
-            foreach (var item in input.Metadata)
-            {
-                uploadRequest.Metadata.Add(item.Key, item.Value);
-            }
-        }
-
         try
         {
             await fileTransferUtility.UploadAsync(uploadRequest, cancellationToken).ConfigureAwait(false);

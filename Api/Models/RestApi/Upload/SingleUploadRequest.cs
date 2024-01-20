@@ -22,10 +22,4 @@ public sealed class SingleUploadRequest
     /// <value></value>
     [Required]
     public IFormFile File { get; set; } = null!;
-
-    /// <summary>
-    /// The file metadata to store
-    /// </summary>
-    /// <value></value>
-    public Dictionary<string, string>? MetaData { get; set; }
 }

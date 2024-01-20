@@ -19,25 +19,7 @@ public class SingleUploadInput
         Path = path;
         Bucket = bucket;
     }
-
-    /// <summary>
-    /// Constructor with metadata
-    /// </summary>
-    /// <remarks>
-    /// <para>Other constructors</para>
-    /// <seealso cref="SingleUploadInput(Stream, string, string)"/>
-    /// </remarks>
-    /// <param name="stream">file steam</param>
-    /// <param name="path">file path</param>
-    /// <param name="bucket">bucket name</param>
-    /// <param name="metadata">file metadata</param>
-    public SingleUploadInput(Stream stream, string path, string bucket, Dictionary<string, string>? metadata)
-    {
-        Stream = stream;
-        Path = path;
-        Bucket = bucket;
-        Metadata = metadata;
-    }
+    
 
     /// <summary>
     /// File stream
@@ -56,10 +38,4 @@ public class SingleUploadInput
     /// </summary>
     /// <value></value>
     public string Bucket { get; private set; } = null!;
-
-    /// <summary>
-    /// File metadata
-    /// </summary>
-    /// <value></value>
-    public Dictionary<string, string>? Metadata { get; private set; }
 }

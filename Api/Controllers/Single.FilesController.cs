@@ -1,6 +1,7 @@
 using System.Net;
 using Filio.Api.Data;
 using Filio.Api.Domains;
+using Filio.Api.Extensions;
 using Filio.Api.Models.RestApi.Get;
 using Filio.Api.Models.RestApi.Upload;
 using Filio.Common.ErrorHandler;
@@ -45,9 +46,8 @@ public partial class FilesController
         var response = new SingleGetResponse(signedUrl: signedUrl,
                                                publicUrl: publicUrl,
                                                bucket: file.BucketName,
-                                               metadata: file.MetaData,
                                                imageBlurhash: file.ImageBlurhash,
-                                               type: file.Type);
+                                               type: nameof(file.Type));
 
         return Ok(response);
     }
@@ -83,7 +83,8 @@ public partial class FilesController
                                     sizeInByte: request.File.Length,
                                     extension: Path.GetExtension(request.File.FileName),
                                     originalName: request.File.FileName,
-                                    type: request.File.ContentType);
+                                    type: fileType.ToFileDomainType(),
+                                    imageBlurhash: null);
 
         if (fileType == FileType.Image)
         {
@@ -91,12 +92,6 @@ public partial class FilesController
             //TODO:Ensure the service can generate blurhash as well (TryGenerateBlurhash)
             var blurhash = await _imageLibService.GenerateBlurhashAsync(fileStream);
             newFile.UpdateBlurhash(blurhash);
-        }
-
-        //TODO:It doesn't works we needs creates a serializable dictionary in form mode
-        if (request.MetaData != null && request.MetaData.Count > 0)
-        {
-            newFile.UpdateMetadata(request.MetaData);
         }
 
         _context.FileDomains.Add(newFile);
@@ -109,8 +104,7 @@ public partial class FilesController
 
             result = await _fileService.UploadAsync(new SingleUploadInput(stream: fileStream,
                                                                             path: newFile.Path,
-                                                                            bucket: newFile.BucketName,
-                                                                        metadata: request.MetaData));
+                                                                            bucket: newFile.BucketName));
 
             //TODO:Ensure the file has been uploaded
         });

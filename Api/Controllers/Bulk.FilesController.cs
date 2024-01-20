@@ -47,7 +47,8 @@ public partial class FilesController
                                         sizeInByte: file.Length,
                                         extension: Path.GetExtension(file.FileName),
                                         originalName: file.FileName,
-                                        type: file.ContentType);
+                                        type: fileType.ToFileDomainType(),
+                                        imageBlurhash: null);
 
             if (fileType == FileType.Image)
             {
@@ -137,9 +138,8 @@ public partial class FilesController
             signedUrl: _fileService.GetSignedUrl(new SingleGetInput(x.BucketName, x.Path)),
             publicUrl: _fileService.GetPublicUrl(new SingleGetInput(x.BucketName, x.Path)),
             bucket: x.BucketName,
-            metadata: null,
             imageBlurhash: x.ImageBlurhash,
-            type: x.Type
+            type: nameof(x.Type)
         ));
 
         return Ok(response);
