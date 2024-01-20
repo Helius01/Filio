@@ -3,12 +3,15 @@ using Filio.Api.Abstractions;
 using Filio.Api.Data;
 using Filio.Api.Domains;
 using Filio.Api.Extensions;
+using Filio.Api.Models.RestApi.Get;
 using Filio.Api.Models.RestApi.Upload;
 using Filio.Common.ErrorHandler;
 using Filio.Common.ErrorHandler.RecoverableErrors;
 using Filio.Common.FileDetector;
+using Filio.FileLib.Models.Get;
 using Filio.FileLib.Models.Upload;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Filio.Api.Controllers;
 
@@ -88,5 +91,57 @@ public partial class FilesController
         {
             FileIds = uploadable.Keys.Select(x => x.Id).ToList()
         });
+    }
+
+    /// <summary>
+    /// Returns the files urls and its data via given ids
+    /// </summary>
+    /// <param name="ids">A string of file guid which separated with coma</param>
+    /// <returns></returns>
+    /// <response code="400">Error : Invalid id | Not match files</response>
+    /// <response code="200">Success : List of SingleGetResponse</response>
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(List<SingleGetResponse>), StatusCodes.Status200OK)]
+    [HttpGet("bulk/{ids}")]
+    public async Task<IActionResult> GetMany([FromRoute] string ids)
+    {
+        var separatedIds = ids.Split(",");
+
+        var fileIds = new List<Guid>();
+
+        foreach (var id in separatedIds)
+        {
+            if (Guid.TryParse(id, out var parsedGuid))
+            {
+                fileIds.Add(parsedGuid);
+            }
+            else
+            {
+                _logger.LogWarning("Couldn't parse the string {Id} to GUID", id);
+                return BadRequest(new { Error = "Invalid id" });
+            }
+        }
+
+        var files = await _context.FileDomains
+                    .Where(x => fileIds.Contains(x.Id))
+                    .AsNoTracking()
+                    .ToListAsync();
+
+        if (files.Count != fileIds.Count)
+        {
+            //TODO:Log
+            return BadRequest(new { Error = "The count of ids doesn't match with the count of files" });
+        }
+
+        var response = files.ConvertAll(x => new SingleGetResponse(
+            signedUrl: _fileService.GetSignedUrl(new SingleGetInput(x.BucketName, x.Path)),
+            publicUrl: _fileService.GetPublicUrl(new SingleGetInput(x.BucketName, x.Path)),
+            bucket: x.BucketName,
+            metadata: null,
+            imageBlurhash: x.ImageBlurhash,
+            type: x.Type
+        ));
+
+        return Ok(response);
     }
 }

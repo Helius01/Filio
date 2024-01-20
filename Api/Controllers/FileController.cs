@@ -38,40 +38,4 @@ public partial class FilesController : ControllerBase
         _fileDetectorService = fileDetectorService;
         _logger = logger;
     }
-
-    /// <summary>
-    /// Returns the file url 
-    /// </summary>
-    /// <param name="id">File id in GUID</param>
-    /// <param name="cancellationToken"></param>
-    /// <response code="200">Success : SingleGetResponse</response>
-    /// <response code="404">Error : File not found</response>
-    /// <returns></returns>
-    [HttpGet("single/{id}")]
-    [ProducesResponseType(typeof(SingleGetResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> Get([FromRoute] Guid id, CancellationToken cancellationToken)
-    {
-        var file = await _context.FileDomains.Where(x => x.Id == id && !x.IsDeleted)
-                                            .AsNoTracking()
-                                            .FirstOrDefaultAsync(cancellationToken);
-
-        if (file is null)
-        {
-            _logger.LogWarning("Requested to get a non exists file with id ={Id}", id);
-            return NotFound("Couldn't find the file");
-        }
-
-        var publicUrl = _fileService.GetPublicUrl(new SingleGetInput(bucket: file.BucketName, path: file.Path));
-        var signedUrl = _fileService.GetSignedUrl(new SingleGetInput(bucket: file.BucketName, path: file.Path));
-
-        var response = new SingleGetResponse(signedUrl: signedUrl,
-                                               publicUrl: publicUrl,
-                                               bucket: file.BucketName,
-                                               metadata: file.MetaData,
-                                               imageBlurhash: file.ImageBlurhash,
-                                               type: file.Type);
-
-        return Ok(response);
-    }
 }
