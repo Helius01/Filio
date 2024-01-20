@@ -1,5 +1,6 @@
 Clean FileDomain
 Change file Type from string to enum
+Standard Error structure
 Dockerize
 Remove metadata for now
 Move Seq address to appsettings
