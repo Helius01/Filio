@@ -1,11 +1,10 @@
-using Amazon.S3.Encryption.Internal;
 using Filio.Api.Abstractions;
 using Filio.Api.Exceptions;
 
 namespace Filio.Api.Domains;
 
 /// <summary>
-/// File keyword has been reserved,so the suffix fine 
+/// File keyword has been reserved,so the suffix is fine 
 /// </summary>
 public class FileDomain : BaseEntity
 {
@@ -19,29 +18,8 @@ public class FileDomain : BaseEntity
     /// <param name="extension"></param>
     /// <param name="originalName"></param>
     /// <param name="type"></param>
-    public FileDomain(string bucketName, long sizeInByte, string extension, string originalName, string type)
-    {
-        SetBucketName(bucketName);
-        SetFileSize(sizeInByte);
-        SetExtension(extension);
-        SetOriginalName(originalName);
-        SetPath(Id, extension);
-        SetType(type);
-    }
-
-    /// <summary>
-    /// Creates a new file with metadata and blurhash
-    /// </summary>
-    /// <param name="bucketName"></param>
-    /// <param name="sizeInByte"></param>
-    /// <param name="extension"></param>
-    /// <param name="originalName"></param>
-    /// <param name="type"></param>
-    /// <param name="metaData"></param>
     /// <param name="imageBlurhash"></param>
-    /// <see  cref="FileDomain(string, long, string, string, string)"/>
-    /// <see  cref="FileDomain(string, long, string, string, string, string, Dictionary{string, string}?)"/>
-    public FileDomain(string bucketName, long sizeInByte, string extension, string originalName, string type, Dictionary<string, string> metaData, string? imageBlurhash = null)
+    public FileDomain(string bucketName, long sizeInByte, string extension, string originalName, FileDomainType type, string? imageBlurhash)
     {
         SetBucketName(bucketName);
         SetFileSize(sizeInByte);
@@ -49,44 +27,12 @@ public class FileDomain : BaseEntity
         SetOriginalName(originalName);
         SetPath(Id, extension);
         SetType(type);
-        SetMetaData(metaData);
-        SetMetaData(metaData);
 
         if (imageBlurhash is not null)
         {
             SetBlurhash(imageBlurhash);
         }
     }
-
-    /// <summary>
-    /// Creates a new file with metadata and blurhash
-    /// </summary>
-    /// <param name="bucketName"></param>
-    /// <param name="sizeInByte"></param>
-    /// <param name="extension"></param>
-    /// <param name="originalName"></param>
-    /// <param name="type"></param>
-    /// <param name="imageBlurhash"></param>
-    /// <param name="metaData"></param>
-    /// <see  cref="FileDomain(string, long, string, string, string)"/>
-    /// <see  cref="FileDomain(string, long, string, string, string, Dictionary{string, string}, string)"/>
-    public FileDomain(string bucketName, long sizeInByte, string extension, string originalName, string type, string imageBlurhash, Dictionary<string, string>? metaData = null)
-    {
-        SetBucketName(bucketName);
-        SetFileSize(sizeInByte);
-        SetExtension(extension);
-        SetOriginalName(originalName);
-        SetPath(Id, extension);
-        SetType(type);
-
-        if (metaData is not null)
-        {
-            SetMetaData(metaData);
-        }
-
-        SetBlurhash(imageBlurhash);
-    }
-
     /// <summary>
     /// File full path 
     /// </summary>
@@ -97,7 +43,7 @@ public class FileDomain : BaseEntity
     /// FileType
     /// </summary>
     /// <value></value>
-    public string Type { get; set; } = null!;
+    public FileDomainType Type { get; private set; }
 
     /// <summary>
     /// File full path - no store in db
@@ -116,12 +62,6 @@ public class FileDomain : BaseEntity
     /// </summary>
     /// <value></value>
     public long SizeInByte { get; private set; }
-
-    /// <summary>
-    /// Metadata
-    /// </summary>
-    /// <value></value>
-    public Dictionary<string, string>? MetaData { get; private set; }
 
     /// <summary>
     /// The image blurhash
@@ -201,40 +141,37 @@ public class FileDomain : BaseEntity
         Path = $"{id}{extension}";
     }
 
-    private void SetType(string type)
+    private void SetType(FileDomainType type)
     {
-        if (string.IsNullOrWhiteSpace(type))
-            throw new DomainException("Type cannot be empty");
-
+        //TODO:Validate
         Type = type;
-    }
-
-    private void SetMetaData(Dictionary<string, string> metadata)
-    {
-        if (metadata.Count < 1)
-            throw new DomainException("Metadata cannot be empty. Also you can use another constructor");
-
-        MetaData = metadata;
     }
 
     private void SetBlurhash(string imageBlurhash)
     {
+        if (string.IsNullOrWhiteSpace(imageBlurhash))
+            throw new DomainException("Blurhash cannot be empty or null");
         ImageBlurhash = imageBlurhash;
     }
 
+    /// <summary>
+    /// Deletes the file
+    /// </summary>
+    /// <remarks>
+    /// Soft Delete in database
+    /// </remarks>
     public void Delete() => IsDeleted = true;
 
+    /// <summary>
+    /// Updates the image blurhash
+    /// </summary>
+    /// <param name="imageBlurhash">The new blurhash to replace</param>
+    /// <exception cref="DomainException" />
     public void UpdateBlurhash(string imageBlurhash)
     {
-
         if (string.IsNullOrWhiteSpace(imageBlurhash))
             throw new DomainException("Blurhash cannot be empty or null");
 
         ImageBlurhash = imageBlurhash;
-    }
-
-    public void UpdateMetadata(Dictionary<string, string> metadata)
-    {
-        MetaData=metadata;
     }
 }
