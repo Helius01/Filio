@@ -1,5 +1,7 @@
+using System.Net;
 using Filio.Api.Abstractions;
 using Filio.Api.Exceptions;
+using Microsoft.VisualBasic;
 
 namespace Filio.Api.Domains;
 
@@ -102,9 +104,32 @@ public class FileDomain : BaseEntity
         if (string.IsNullOrWhiteSpace(bucketName))
             throw new DomainException("Bucket name cannot be empty");
 
-
-        if (bucketName.Length < 3 || bucketName.Length > 128)
+        if (bucketName.Length < 3 || bucketName.Length > 63)
             throw new DomainException("Bucket name must be between 3 and 128 characters");
+
+        if (bucketName.Any(x => char.IsUpper(x)))
+            throw new DomainException("Bucket name can't have upper case charachters");
+
+        if (IPAddress.TryParse(bucketName, out _))
+            throw new DomainException("Bucket name can't be look likes an IP");
+
+        if (bucketName.StartsWith("xn--"))
+            throw new DomainException("Bucket name can't start with xn-- prefix");
+
+        if (bucketName.StartsWith("sthree-"))
+            throw new DomainException("Bucket name can't start with sthree- prefix");
+
+        if (bucketName.StartsWith("sthree-configurator"))
+            throw new DomainException("Bucket name can't start with sthree-configurator prefix");
+
+        if (bucketName.EndsWith("-s3alias"))
+            throw new DomainException("Bucket name can't start with -s3alias suffix");
+
+        if (bucketName.EndsWith("--ol-s3"))
+            throw new DomainException("Bucket name can't start with --ol-s3 suffix");
+
+        if (bucketName.Contains('.'))
+            throw new DomainException("Bucket name can't containts dot");
 
         BucketName = bucketName;
     }
