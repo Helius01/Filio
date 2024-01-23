@@ -13,16 +13,10 @@ namespace Filio.FileLib;
 /// <summary>
 /// The implementation of IFileService which integrated with AWS S3 
 /// </summary>
-internal sealed class S3FileService : IFileService
+internal sealed class S3FileService(AmazonS3Client client, AwsSettings awsSettings) : IFileService
 {
-    private readonly AmazonS3Client _client;
-    private readonly AwsSettings _awsSettings;
-
-    public S3FileService(AmazonS3Client client, AwsSettings awsSettings)
-    {
-        _client = client;
-        _awsSettings = awsSettings;
-    }
+    private readonly AmazonS3Client _client = client;
+    private readonly AwsSettings _awsSettings = awsSettings;
 
     ///<inheritdoc />
     public Task DeleteAsync(SingleDeleteInput input, CancellationToken cancellationToken = default)
