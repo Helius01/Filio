@@ -1,7 +1,6 @@
 using System.Net;
 using Filio.Api.Abstractions;
 using Filio.Api.Exceptions;
-using Microsoft.VisualBasic;
 
 namespace Filio.Api.Domains;
 
