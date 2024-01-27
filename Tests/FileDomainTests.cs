@@ -19,7 +19,7 @@ public class FileDomainTests
     [InlineData("mybucket--ol-s3")]//Bad Suffix
     [InlineData("mybucket.first")]//Dot Contains
     [InlineData("VsMC6AVLfXC0syNyD6rLUaVCJBZMDz9dlKMhWfAwCPiXVAyWbxU32KnlABRZADFd")]//Too long (64) length
-    public void CreatingFile_WithInvalidBucketName_ShouldException(string bucketName)
+    public void CreatingFile_WithInvalidBucketName_ShouldThrowException(string bucketName)
     {
         Assert.Throws<DomainException>(() => new FileDomain(bucketName: bucketName,
                                     sizeInByte: 10,
