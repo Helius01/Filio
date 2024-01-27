@@ -1,11 +1,8 @@
-using System.Net;
 using Filio.Api.Data;
 using Filio.Api.Domains;
 using Filio.Api.Extensions;
 using Filio.Api.Models.RestApi.Get;
 using Filio.Api.Models.RestApi.Upload;
-using Filio.Common.ErrorHandler;
-using Filio.Common.ErrorHandler.RecoverableErrors;
 using Filio.Common.FileDetector;
 using Filio.FileLib.Models.Delete;
 using Filio.FileLib.Models.Get;
@@ -75,8 +72,9 @@ public partial class FilesController
         if (fileType == FileType.None)
         {
             _logger.LogWarning("Detected an unsupported file type = {Type}", fileType);
-            //TODO:Use strong type for error response
-            return BadRequest(new { Error = "File type not supported" });
+
+            ModelState.AddModelError(nameof(request.File), "Unsupported file");
+            return BadRequest(modelState: ModelState);
         }
 
         var newFile = new FileDomain(bucketName: request.BucketName,
@@ -88,41 +86,40 @@ public partial class FilesController
 
         if (fileType == FileType.Image)
         {
-            //Generating blurhash
-            //TODO:Ensure the service can generate blurhash as well (TryGenerateBlurhash)
-            var blurhash = await _imageLibService.GenerateBlurhashAsync(fileStream);
-            newFile.UpdateBlurhash(blurhash);
+            var blurhashGenerated = _imageLibService.TryGenerateBlurhash(fileStream, out string blurhash);
+            if (blurhashGenerated)
+            {
+                newFile.UpdateBlurhash(blurhash!);
+            }
+            else
+            {
+                _logger.LogWarning("Couldn't create blurhash for an image type with extension = {Extension}", newFile.Extension);
+            }
         }
 
         _context.FileDomains.Add(newFile);
-
-        Either<HttpError, SingleUploadOutput> result = new();
 
         await ResilientTransaction.Create(_context).ExecuteAsync(async () =>
         {
             await _context.SaveChangesAsync();
 
-            result = await _fileService.UploadAsync(new SingleUploadInput(stream: fileStream,
+            await _fileService.UploadAsync(new SingleUploadInput(stream: fileStream,
                                                                             path: newFile.Path,
                                                                             bucket: newFile.BucketName));
 
-            //TODO:Ensure the file has been uploaded
+
         });
 
-        //TODO:Use standard structure for error response
-        return result.Match<IActionResult>(
-            left => left.StatusCode switch
-            {
-                HttpStatusCode.BadRequest => BadRequest(new { Error = left.Message }),
-                HttpStatusCode.NotFound => NotFound(new { Error = left.Message }),
-                _ => Problem(detail: left.Message, statusCode: (int)left.StatusCode)
-            }
-        , right => Ok(new SingleUploadResponse
+
+        var publicUrl = _fileService.GetPublicUrl(new SingleGetInput(bucket: newFile.BucketName, path: newFile.Path));
+        var signedUrl = _fileService.GetSignedUrl(new SingleGetInput(bucket: newFile.BucketName, path: newFile.Path));
+
+        return Ok(new SingleUploadResponse
         {
             FileId = newFile.Id,
-            PublicUrl = right.PublicUrl,
-            SignedUrl = right.SignedUrl
-        }));
+            PublicUrl = publicUrl,
+            SignedUrl = signedUrl
+        });
     }
 
     /// <summary>

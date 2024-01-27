@@ -5,8 +5,6 @@ using Filio.Api.Domains;
 using Filio.Api.Extensions;
 using Filio.Api.Models.RestApi.Get;
 using Filio.Api.Models.RestApi.Upload;
-using Filio.Common.ErrorHandler;
-using Filio.Common.ErrorHandler.RecoverableErrors;
 using Filio.Common.FileDetector;
 using Filio.FileLib.Models.Get;
 using Filio.FileLib.Models.Upload;
@@ -60,7 +58,6 @@ public partial class FilesController
             _context.FileDomains.Add(newFile);
         }
 
-        List<Either<HttpError, SingleUploadOutput>> serviceResponse = new();
 
         await ResilientTransaction.Create(_context).ExecuteAsync(async () =>
         {
@@ -68,20 +65,10 @@ public partial class FilesController
 
             var uploadTasks = uploadable.Select(async x =>
             {
-                return await _fileService.UploadAsync(new SingleUploadInput(x.Value, x.Key.Path, bucket: request.BucketName));
+                await _fileService.UploadAsync(new SingleUploadInput(x.Value, x.Key.Path, bucket: request.BucketName));
             });
 
             await Task.WhenAll(uploadTasks);
-
-            serviceResponse = uploadTasks.Select(x => x.GetAwaiter().GetResult()).ToList();
-
-            if (serviceResponse.Any(x => x.IsLeft))
-            {
-                _logger.LogError("Couldn't upload some files with message = {Message}",
-                     serviceResponse.First(x => x.IsLeft).LeftOrDefault()!.Message);
-
-                throw new Exception("Something went wrong");
-            }
         });
 
         uploadable.Values.ToList().ForEach(x => x.ManualDispose());
@@ -130,7 +117,7 @@ public partial class FilesController
 
         if (files.Count != fileIds.Count)
         {
-            //TODO:Log
+            _logger.LogError("Requested for {RequestCount} but only found {FileCount}", fileIds.Count, files.Count);
             return BadRequest(new { Error = "The count of ids doesn't match with the count of files" });
         }
 
