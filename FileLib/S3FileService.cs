@@ -7,16 +7,18 @@ using Filio.FileLib.Models.Delete;
 using Filio.FileLib.Models.Get;
 using Filio.FileLib.Models.Upload;
 using Filio.FileLib.Settings.Aws;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Filio.FileLib;
 
 /// <summary>
 /// The implementation of IFileService which integrated with AWS S3 
 /// </summary>
-internal sealed class S3FileService(AmazonS3Client client, AwsSettings awsSettings) : IFileService
+internal sealed class S3FileService(AmazonS3Client client, AwsSettings awsSettings, IHostingEnvironment environment) : IFileService
 {
     private readonly AmazonS3Client _client = client;
     private readonly AwsSettings _awsSettings = awsSettings;
+    private readonly IHostingEnvironment _environment = environment;
 
     ///<inheritdoc />
     public Task DeleteAsync(SingleDeleteInput input, CancellationToken cancellationToken = default)
@@ -33,13 +35,12 @@ internal sealed class S3FileService(AmazonS3Client client, AwsSettings awsSettin
     ///<inheritdoc />
     public string GetSignedUrl(SingleGetInput input)
     {
-        //TODO:Detect protocol from env
         var request = new GetPreSignedUrlRequest
         {
             BucketName = input.Bucket,
             Key = input.Path,
             Expires = DateTime.Now.AddMinutes(_awsSettings.ExpirationTimeInMinutes),
-            Protocol = Protocol.HTTP
+            Protocol = _environment.IsDevelopment() ? Protocol.HTTP : Protocol.HTTPS
         };
 
         return _client.GetPreSignedURL(request);

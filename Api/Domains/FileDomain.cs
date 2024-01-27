@@ -167,7 +167,6 @@ public class FileDomain : BaseEntity
 
     private void SetType(FileDomainType type)
     {
-        //TODO:Validate
         Type = type;
     }
 
