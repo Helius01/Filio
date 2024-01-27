@@ -55,7 +55,7 @@ internal sealed class S3FileService(AmazonS3Client client, AwsSettings awsSettin
     }
 
     ///<inheritdoc />
-    public async Task<Either<HttpError, SingleUploadOutput>> UploadAsync(SingleUploadInput input, CancellationToken cancellationToken = default)
+    public async Task UploadAsync(SingleUploadInput input, CancellationToken cancellationToken = default)
     {
         using var fileTransferUtility = new TransferUtility(_client);
 
@@ -69,21 +69,6 @@ internal sealed class S3FileService(AmazonS3Client client, AwsSettings awsSettin
             AutoResetStreamPosition = true,
         };
 
-        try
-        {
-            await fileTransferUtility.UploadAsync(uploadRequest, cancellationToken).ConfigureAwait(false);
-        }
-
-        //If the exception is not type of AmazonS3Exception, Let it throw
-        catch (AmazonS3Exception exception)
-        {
-            //TODO:Log and capture 
-            return Either<HttpError, SingleUploadOutput>.Left(new HttpError(exception.Message, exception.StatusCode));
-        }
-
-        var signedUrl = GetSignedUrl(new SingleGetInput(bucket: input.Bucket, path: input.Path));
-        var publicUrl = GetPublicUrl(new SingleGetInput(bucket: input.Bucket, path: input.Path));
-
-        return Either<HttpError, SingleUploadOutput>.Right(new SingleUploadOutput(publicUrl: publicUrl, signedUrl: signedUrl));
+        await fileTransferUtility.UploadAsync(uploadRequest, cancellationToken).ConfigureAwait(false);
     }
 }

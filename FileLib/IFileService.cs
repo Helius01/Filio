@@ -21,7 +21,7 @@ public interface IFileService
     /// <param name="input"></param>
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
-    Task<Either<HttpError, SingleUploadOutput>> UploadAsync(SingleUploadInput input, CancellationToken cancellationToken = default);
+    Task UploadAsync(SingleUploadInput input, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Deletes a file
