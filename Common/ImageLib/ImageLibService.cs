@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using Filio.Common.Blurhash;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
@@ -19,7 +20,6 @@ internal class ImageLibService : IImageLibService
     public async Task<string> GenerateBlurhashAsync(Stream imageStream, int componentsX = 6, int componentsY = 6)
     {
         imageStream.Position = 0;
-        //TODO:Handle excepyions
         using var image = await Image.LoadAsync<Rgb24>(imageStream);
 
         return _blurhashService.Encode(image, componentsX, componentsY);
@@ -57,5 +57,24 @@ internal class ImageLibService : IImageLibService
         });
 
         return newStream;
+    }
+
+    ///<inheritdoc/>
+    public bool TryGenerateBlurhash(Stream imageStream, out string? blurhash, int componentsX = 6, int componentsY = 6)
+    {
+        blurhash = null;
+        imageStream.Position = 0;
+        try
+        {
+            using var image = Image.LoadAsync<Rgb24>(imageStream).GetAwaiter().GetResult();
+            blurhash = _blurhashService.Encode(image, componentsX, componentsY);
+        }
+        catch
+        {
+            //TODO:Capture
+            return false;
+        }
+
+        return true;
     }
 }

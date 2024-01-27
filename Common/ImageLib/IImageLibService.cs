@@ -15,6 +15,15 @@ public interface IImageLibService
     Task<string> GenerateBlurhashAsync(Stream imageStream, int componentsX = 6, int componentsY = 6);
 
     /// <summary>
+    /// The function try to generate blurhash else returns false
+    /// </summary>
+    /// <param name="imageStream"></param>
+    /// <param name="componentsX"></param>
+    /// <param name="componentsY"></param>
+    /// <returns></returns>
+    bool TryGenerateBlurhash(Stream imageStream, out string? blurhash, int componentsX = 6, int componentsY = 6);
+
+    /// <summary>
     /// Resizes an image and returns the new stream
     /// </summary>
     /// <param name="imageStream"></param>
